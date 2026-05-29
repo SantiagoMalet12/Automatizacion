@@ -1,36 +1,59 @@
-int sensorLuz = A0;  // Pin analógico conectado al LDR
-int pinLED = 5;      // Pin digital PWM conectado al LED (¡Asegurate de usar uno con el símbolo ~!)
+// Fotoresistencia en A0
+const int LDR = A0;
+unsigned long  tiempo1, tiempo2;
+
+float kp = 0.05;
+float ki = 0.10;
+float kd = 0;
+float referencia = 500;
+float error = 0;
+float U;
+
+float errorIntegral = 0;
+float errorDerivativo = 0;
+float errorAnterior = 0;
+
+// LED en pin 5
+const int LED = 5;
 
 void setup() {
-  Serial.begin(9600);       // Inicia comunicación serial
-  pinMode(pinLED, OUTPUT);  // Configura el pin del LED como salida [cite: 157]
+  Serial.begin(9600);
+
+
   
-  // Arrancamos con el LED totalmente apagado (Brillo = 0)
-  analogWrite(pinLED, 0);   
-  
-  Serial.println("--- INICIANDO ENSAYO EN LAZO ABIERTO ---");
-  Serial.println("Tiempo(ms),ValorLDR");
+
+  // Configurar LED como salida
+  pinMode(LED, OUTPUT);
 }
 
 void loop() {
-  unsigned long tiempoActual = millis(); // Registra el tiempo desde que arrancó el Arduino
 
-  // 1. FASE DE OSCURIDAD: Durante los primeros 3 segundos (3000 ms) el LED se queda apagado
-  if (tiempoActual < 3000) {
-    analogWrite(pinLED, 0);
-  }
-  
-  // 2. EL ESCALÓN DE PWM: A los 3 segundos exactos, el LED salta de golpe a un brillo de 150 [cite: 97, 111]
-  else {
-    analogWrite(pinLED, 150); 
-  }
+  // Leer valor de la fotoresistencia
+  int valorLuz = analogRead(LDR);
 
-  // 3. REGISTRO DE DATOS: Leemos el LDR e imprimimos en formato CSV para poder graficarlo después
-  int valor = analogRead(sensorLuz); 
-  
-  Serial.print(tiempoActual);
+  error = referencia - valorLuz; //error que recibo desd e
+
+  errorDerivativo = (error -errorAnterior) / 0.1;
+  errorIntegral = errorIntegral + (ki*error);
+  U = (kp * error) + errorIntegral + (kd*errorDerivativo); //accion correctora
+
+
+
+
+  int pwmOut = (int)U;
+  if (pwmOut > 255) pwmOut = 255;
+  if (pwmOut < 0)   pwmOut = 0;
+
+
+  analogWrite(LED, pwmOut);
+
+  Serial.print(referencia);
   Serial.print(",");
-  Serial.println(valor);
+  Serial.print(valorLuz);
+  Serial.print(",");
+  Serial.println(pwmOut);
 
-  delay(50); // Muestreo más rápido (50ms) para capturar bien la curva de subida [cite: 106]
+  errorAnterior = error;
+
+  delay(100);
 }
