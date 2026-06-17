@@ -8,7 +8,7 @@ const char* password = "45608056";
 const char* tbServer = "thingsboard.cloud";
 const char* token = "i8zy38u28r2xpfz92kd8"; 
 
-// Topic específico de la cátedra
+
 const char* mqttTopicTelemetry = "utn/2026/c01/g01/telemetry"; 
 
 SoftwareSerial arduinoSerial(5, 4); // D1 (Rx) y D2 (Tx)
@@ -20,7 +20,7 @@ void setup() {
   Serial.begin(9600);
   arduinoSerial.begin(9600);
   
-  // Búfer expandido para respuestas rápidas
+  
   client.setBufferSize(512); 
   
   conectarWiFi();
@@ -34,12 +34,12 @@ void loop() {
   }
   client.loop();
 
-  // Escuchar la cadena JSON completa que manda el Arduino y replicarla en la nube
+  
   if (arduinoSerial.available() > 0) {
     String payload = arduinoSerial.readStringUntil('\n');
     payload.trim();
     
-    // Validamos que sea un JSON antes de publicar
+    
     if (payload.startsWith("{") && payload.endsWith("}")) {
       client.publish("v1/devices/me/telemetry", payload.c_str());
       client.publish(mqttTopicTelemetry, payload.c_str());
@@ -56,7 +56,7 @@ void onMqttMessage(char* topic, byte* payload, unsigned int length) {
   if (!error) {
     String method = doc["method"];
     
-    // Despacho de comandos seriales según el control del Dashboard
+    
     if (method == "setSetpoint") {
       int val = doc["params"];
       arduinoSerial.print("SET_R:"); arduinoSerial.println(val);
@@ -74,11 +74,11 @@ void onMqttMessage(char* topic, byte* payload, unsigned int length) {
       arduinoSerial.print("SET_KD:"); arduinoSerial.println(val, 2);
     } 
     else if (method == "setMode") {
-      String val = doc["params"]; // "AUTO" o "MANUAL"
+      String val = doc["params"]; 
       arduinoSerial.print("SET_MODE:"); arduinoSerial.println(val);
     }
 
-    // Responder de inmediato para anular cartel de timeout en ThingsBoard
+    
     String topicStr = String(topic);
     topicStr.replace("request", "response");
     client.publish(topicStr.c_str(), "{\"status\":\"ok\"}"); 

@@ -1,16 +1,16 @@
 #include <SoftwareSerial.h>
 
-SoftwareSerial nodoSerial(10, 11); // Rx, Tx (El pin 11 va al divisor de tensión hacia el NodeMCU)
+SoftwareSerial nodoSerial(10, 11); 
 
 const int LDR = A0;
 const int LED = 5;
 
-// Variables de control PID (Valores iniciales conservadores para evitar oscilaciones)
+// Variables de control PID
 float kp = 0.15;        
 float ki = 0.01;        
 float kd = 0.00;         
-float referencia = 500; // Valor inicial del slider
-bool modoAuto = true;   // Arranca en automático por defecto
+float referencia = 500; // Valor inicial del setpointt
+bool modoAuto = true;   
 
 float error = 0;
 float U = 0;
@@ -18,11 +18,11 @@ float U = 0;
 float errorIntegral = 0;
 float errorDerivativo = 0;
 float errorAnterior = 0;
-const float Ts = 0.1;   // Período de muestreo fijo = 100ms (0.1 segundos)
+const float Ts = 0.1;   // 0,1 segundos
 
 void setup() {
-  Serial.begin(9600);       // Monitor serie de la PC
-  nodoSerial.begin(9600);   // Comunicación con NodeMCU
+  Serial.begin(9600);       
+  nodoSerial.begin(9600);   
   pinMode(LED, OUTPUT);
 }
 
